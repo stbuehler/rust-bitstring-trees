@@ -3,7 +3,6 @@
 [![crates.io](https://img.shields.io/crates/v/bitstring-trees.svg)](https://crates.io/crates/bitstring-trees)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-This library provides traits and some implementations to provide
-bitstring-trees views on objects.
+This library provides sets and maps with trees based on bitstrings.
 
 The documentation for `master` is located at [https://stbuehler.github.io/rustdocs/bitstring-trees/bitstring_trees/](https://stbuehler.github.io/rustdocs/bitstring-trees/bitstring_trees/index.html); released versions are documented at [https://docs.rs/bitstring-trees](https://docs.rs/bitstring-trees).
