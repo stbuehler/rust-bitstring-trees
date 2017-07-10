@@ -1,0 +1,21 @@
+[package]
+name = "bitstring-trees"
+# also bump version in html_root_url in src/lib.rs
+version = "0.1.0"
+authors = ["Stefan Bühler <stbuehler@web.de>"]
+description = "Trees based on bitstrings"
+documentation = "https://docs.rs/bitstring-trees"
+homepage = "https://github.com/stbuehler/rust-bitstring-trees"
+repository = "https://github.com/stbuehler/rust-bitstring-trees"
+categories = ["data-structures"]
+keywords = ["bitstring","tree"]
+readme = "README.md"
+license = "MIT"
+exclude = ["CHECKLIST.md"]
+
+[badges]
+travis-ci = { repository = "stbuehler/rust-bitstring-trees" }
+appveyor = { repository = "stbuehler/rust-bitstring-trees" }
+
+[dependencies]
+bitstring = "0.1"
