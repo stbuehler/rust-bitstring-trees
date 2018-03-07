@@ -65,7 +65,7 @@ pub struct Leaf<S: BitString> {
 #[derive(Clone,Debug)]
 pub struct InnerNode<S: BitString> {
 	key: S,
-	children: Box<Children<S>>,
+	children: Option<Box<Children<S>>>,
 }
 
 #[derive(Clone,Debug)]
@@ -84,9 +84,17 @@ impl<S: BitString> Leaf<S> {
 impl<S: BitString> InnerNode<S> {
 	fn pick_side<'a>(&'a mut self, subkey: &S) -> &'a mut Node<S> {
 		if subkey.get(self.key.len()) {
-			&mut self.children.right
+			&mut self.children.as_mut().unwrap().right
 		} else {
-			&mut self.children.left
+			&mut self.children.as_mut().unwrap().left
+		}
+	}
+
+	fn extract_side<'a>(&'a mut self, subkey: &S) -> Node<S> {
+		if subkey.get(self.key.len()) {
+			self.children.take().unwrap().right
+		} else {
+			self.children.take().unwrap().left
 		}
 	}
 
@@ -98,13 +106,13 @@ impl<S: BitString> InnerNode<S> {
 	/// The left branch; all prefixes in this sub tree have a `false`
 	/// bit after `self.key()`.
 	pub fn left(&self) -> &Node<S> {
-		&self.children.left
+		&self.children.as_ref().unwrap().left
 	}
 
 	/// The left branch; all prefixes in this sub tree have a `true`
 	/// bit after `self.key()`.
 	pub fn right(&self) -> &Node<S> {
-		&self.children.right
+		&self.children.as_ref().unwrap().right
 	}
 }
 
@@ -112,7 +120,7 @@ impl<S: BitString+fmt::Debug> fmt::Debug for Node<S> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
 			Node::Leaf(ref leaf) => write!(f, "Leaf {{ key: {:?} }}", leaf.key),
-			Node::InnerNode(ref inner) => write!(f, "InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}", inner.key, inner.children.left, inner.children.right),
+			Node::InnerNode(ref inner) => write!(f, "InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}", inner.key, inner.left(), inner.right()),
 		}
 	}
 }
@@ -145,7 +153,7 @@ impl<S: BitString+Clone> Node<S> {
 		key.clip(shared_prefix_len);
 		Node::InnerNode(InnerNode{
 			key: key,
-			children: Self::new_children_unknown_order(shared_prefix_len, a, b),
+			children: Some(Self::new_children_unknown_order(shared_prefix_len, a, b)),
 		})
 	}
 
@@ -222,11 +230,11 @@ impl<S: BitString+Clone> Node<S> {
 		// both child nodes are leafs, make the current node a leaf
 		let compress = match *self {
 			Node::InnerNode(ref inner) => {
-				let compress_left = match inner.children.left {
+				let compress_left = match *inner.left() {
 					Node::Leaf(ref left_leaf) => left_leaf.key.len() == self_key_len + 1,
 					Node::InnerNode(_) => return, // must be leaf
 				};
-				let compress_right = match inner.children.right {
+				let compress_right = match *inner.right() {
 					Node::Leaf(ref right_leaf) => right_leaf.key.len() == self_key_len + 1,
 					Node::InnerNode(_) => return, // must be leaf
 				};
@@ -236,6 +244,50 @@ impl<S: BitString+Clone> Node<S> {
 		};
 		if compress {
 			self.convert_leaf(self_key_len);
+		}
+	}
+
+	// returns true when node needs to be deleted completely
+	fn remove(&mut self, key: &S) -> bool {
+		let (self_key_len, shared_prefix_len) = {
+			let key_ref = self.key();
+			(key_ref.len(), key_ref.shared_prefix_len(key))
+		};
+
+		if shared_prefix_len == key.len() {
+			// always: shared_prefix_len <= self_key_len
+			// => key is a prefix of self.key
+			return true;
+		} else if shared_prefix_len == self_key_len {
+			debug_assert!(shared_prefix_len < key.len());
+			// new key below in tree
+			let new_node = match *self {
+				Node::Leaf(_) => {
+					// need to split
+					let mut leaf_key = key.clone();
+					leaf_key.flip(key.len()-1);
+					let mut new_node = Self::new_leaf(leaf_key);
+					for i in self_key_len..key.len()-1 {
+						let mut k = key.clone();
+						k.flip(i);
+						k.clip(i+1);
+						new_node = Self::new_inner_unknown_order(i, new_node, Self::new_leaf(k));
+					}
+					new_node
+				},
+				Node::InnerNode(ref mut inner) => {
+					if inner.pick_side(key).remove(key) {
+						inner.extract_side(key)
+					} else {
+						return false;
+					}
+				},
+			};
+			*self = new_node;
+			return false;
+		} else {
+			// no common prefix, i.e. key is not part of the set
+			return false;
 		}
 	}
 }
@@ -255,6 +307,13 @@ impl<S: BitString+Clone> RadixSet<S> {
 			Some(ref mut node) => {
 				node.insert(key);
 			},
+		}
+	}
+
+	/// Remove a prefix from the set
+	pub fn remove(&mut self, key: &S) {
+		if self.node.as_mut().map(|n| n.remove(key)).unwrap_or(false) {
+			self.node = None;
 		}
 	}
 

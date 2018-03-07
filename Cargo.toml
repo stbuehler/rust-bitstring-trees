@@ -18,4 +18,4 @@ travis-ci = { repository = "stbuehler/rust-bitstring-trees" }
 appveyor = { repository = "stbuehler/rust-bitstring-trees" }
 
 [dependencies]
-bitstring = "0.1"
+bitstring = "0.1.1"

@@ -6,6 +6,7 @@ extern crate bitstring;
 
 pub mod map;
 pub mod set;
+pub mod range;
 
 // sometimes one wants to destruct and re-construct a value, but only
 // has a mutable reference.
