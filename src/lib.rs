@@ -10,9 +10,6 @@ pub mod set;
 // sometimes one wants to destruct and re-construct a value, but only
 // has a mutable reference.
 //
-// this method put uninitialized memory in place until there is a new
-// value.
-//
 // if re-constructing the value panics we end up with a really fucked up
 // memory state - we need to kill the process.
 //
@@ -24,20 +21,18 @@ where
 	F: FnOnce(T) -> T,
 {
 	use std::{
-		mem,
 		panic::*,
 		process,
 	};
 
 	let with = AssertUnwindSafe(with);
 
-	let old = AssertUnwindSafe(mem::replace(location, unsafe { mem::uninitialized() }));
+	let old = AssertUnwindSafe(unsafe { std::ptr::read(location) });
 	let new = catch_unwind(move || AssertUnwindSafe(with.0(old.0))).unwrap_or_else(move |_e| {
 		// we're screwed, give up
 		process::abort();
 	});
-	let tmp = mem::replace(location, new.0);
-	mem::forget(tmp);
+	unsafe { std::ptr::write(location, new.0) }
 }
 
 // similar to replace_at, but allow for a second chance through
@@ -54,7 +49,6 @@ where
 	G: FnOnce() -> T,
 {
 	use std::{
-		mem,
 		panic::*,
 		process,
 	};
@@ -62,7 +56,7 @@ where
 	let with = AssertUnwindSafe(with);
 	let fallback = AssertUnwindSafe(fallback);
 
-	let old = AssertUnwindSafe(mem::replace(location, unsafe { mem::uninitialized() }));
+	let old = AssertUnwindSafe(unsafe { std::ptr::read(location) });
 	let (new, panic_err) = catch_unwind(move || (AssertUnwindSafe(with.0(old.0)), None))
 		.unwrap_or_else(move |e| {
 			// remember panic so we can resume unwinding it
@@ -75,8 +69,7 @@ where
 				},
 			)
 		});
-	let tmp = mem::replace(location, new.0);
-	mem::forget(tmp);
+	unsafe { std::ptr::write(location, new.0) }
 	if let Some(panic_err) = panic_err {
 		resume_unwind(panic_err);
 	}
