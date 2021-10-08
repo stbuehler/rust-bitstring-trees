@@ -1,11 +1,15 @@
 //! set of bit strings prefixes
 use bitstring::BitString;
-use std::boxed::Box;
-use std::option::Option;
-use std::fmt;
+use std::{
+	boxed::Box,
+	fmt,
+	option::Option,
+};
 
-pub use self::iter::*;
-pub use self::iter_full::*;
+pub use self::{
+	iter::*,
+	iter_full::*,
+};
 
 mod iter;
 mod iter_full;
@@ -24,7 +28,7 @@ pub struct RadixSet<S: BitString> {
 	node: Option<Node<S>>,
 }
 
-impl<S: BitString+fmt::Debug> fmt::Debug for RadixSet<S> {
+impl<S: BitString + fmt::Debug> fmt::Debug for RadixSet<S> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self.node {
 			None => {
@@ -39,9 +43,7 @@ impl<S: BitString+fmt::Debug> fmt::Debug for RadixSet<S> {
 
 impl<S: BitString> Default for RadixSet<S> {
 	fn default() -> RadixSet<S> {
-		return RadixSet::<S>{
-			node: None,
-		}
+		return RadixSet::<S> { node: None };
 	}
 }
 
@@ -56,19 +58,19 @@ pub enum Node<S: BitString> {
 }
 
 /// Leaf nodes represent prefixes part of the set
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Leaf<S: BitString> {
 	key: S,
 }
 
 /// Inner node with two direrct children.
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct InnerNode<S: BitString> {
 	key: S,
 	children: Box<Children<S>>,
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 struct Children<S: BitString> {
 	left: Node<S>,
 	right: Node<S>,
@@ -108,43 +110,43 @@ impl<S: BitString> InnerNode<S> {
 	}
 }
 
-impl<S: BitString+fmt::Debug> fmt::Debug for Node<S> {
+impl<S: BitString + fmt::Debug> fmt::Debug for Node<S> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
 			Node::Leaf(ref leaf) => write!(f, "Leaf {{ key: {:?} }}", leaf.key),
-			Node::InnerNode(ref inner) => write!(f, "InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}", inner.key, inner.children.left, inner.children.right),
+			Node::InnerNode(ref inner) => write!(
+				f,
+				"InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}",
+				inner.key, inner.children.left, inner.children.right
+			),
 		}
 	}
 }
 
-impl<S: BitString+Clone> Node<S> {
+impl<S: BitString + Clone> Node<S> {
 	fn new_leaf(key: S) -> Node<S> {
-		Node::Leaf(Leaf{
-			key: key,
-		})
+		Node::Leaf(Leaf { key })
 	}
 
-	fn new_children_unknown_order(shared_prefix_len: usize, a: Node<S>, b: Node<S>) -> Box<Children<S>> {
+	fn new_children_unknown_order(
+		shared_prefix_len: usize,
+		a: Node<S>,
+		b: Node<S>,
+	) -> Box<Children<S>> {
 		let a_right = a.key().get(shared_prefix_len);
 		assert_eq!(!a_right, b.key().get(shared_prefix_len));
 		if a_right {
-			Box::new(Children{
-				left: b,
-				right: a,
-			})
+			Box::new(Children { left: b, right: a })
 		} else {
-			Box::new(Children{
-				left: a,
-				right: b,
-			})
+			Box::new(Children { left: a, right: b })
 		}
 	}
 
 	fn new_inner_unknown_order(shared_prefix_len: usize, a: Node<S>, b: Node<S>) -> Node<S> {
 		let mut key = a.key().clone();
 		key.clip(shared_prefix_len);
-		Node::InnerNode(InnerNode{
-			key: key,
+		Node::InnerNode(InnerNode {
+			key,
 			children: Self::new_children_unknown_order(shared_prefix_len, a, b),
 		})
 	}
@@ -158,9 +160,7 @@ impl<S: BitString+Clone> Node<S> {
 	}
 
 	fn replace<F: FnOnce(Self) -> Self>(&mut self, with: F) {
-		super::replace_at_and_fallback(self, with, || {
-			Self::new_leaf(S::null())
-		})
+		super::replace_at_and_fallback(self, with, || Self::new_leaf(S::null()))
 	}
 
 	// convert self node to leaf with key clipped to key_len
@@ -192,11 +192,7 @@ impl<S: BitString+Clone> Node<S> {
 			debug_assert!(shared_prefix_len < key.len());
 			// need to split path to current node; requires new parent
 			self.replace(|this| {
-				Self::new_inner_unknown_order(
-					shared_prefix_len,
-					this,
-					Self::new_leaf(key)
-				)
+				Self::new_inner_unknown_order(shared_prefix_len, this, Self::new_leaf(key))
 			});
 			// update self_key_len for compression handling below
 			self_key_len = shared_prefix_len;
@@ -208,11 +204,9 @@ impl<S: BitString+Clone> Node<S> {
 				Node::Leaf(_) => {
 					// -> already included
 					// no changes, no compression handling
-					return
+					return;
 				},
-				Node::InnerNode(ref mut inner) => {
-					inner.pick_side(&key).insert(key)
-				},
+				Node::InnerNode(ref mut inner) => inner.pick_side(&key).insert(key),
 			}
 			// self_key_len didn't change
 		}
@@ -240,7 +234,7 @@ impl<S: BitString+Clone> Node<S> {
 	}
 }
 
-impl<S: BitString+Clone> RadixSet<S> {
+impl<S: BitString + Clone> RadixSet<S> {
 	/// New (empty) set.
 	pub fn new() -> Self {
 		Default::default()

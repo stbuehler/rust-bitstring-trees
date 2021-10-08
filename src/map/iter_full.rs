@@ -1,8 +1,8 @@
+use super::*;
 use bitstring::BitString;
 use std::option::Option;
-use super::*;
 
-#[derive(Clone,Copy,PartialEq,Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum Direction {
 	Down,
 	Left,
@@ -12,20 +12,20 @@ enum Direction {
 use self::Direction::*;
 
 /// Iterate over tree
-pub struct IterFull<'a, S: BitString+'a, V: 'a> {
+pub struct IterFull<'a, S: BitString + 'a, V: 'a> {
 	stack: Vec<(Direction, &'a Node<S, V>)>,
 	depth: usize,
 }
 
-impl<'a, S: BitString+Clone, V> IterFull<'a, S, V> {
+impl<'a, S: BitString + Clone, V> IterFull<'a, S, V> {
 	/// new iterator
 	pub fn new(tree: &'a RadixMap<S, V>) -> Self {
 		match tree.root() {
-			None => IterFull{
+			None => IterFull {
 				stack: Vec::new(),
 				depth: 0,
 			},
-			Some(node) => IterFull{
+			Some(node) => IterFull {
 				stack: vec![(Down, node)],
 				depth: 0,
 			},
@@ -33,7 +33,7 @@ impl<'a, S: BitString+Clone, V> IterFull<'a, S, V> {
 	}
 }
 
-impl<'a, S: BitString+Clone, V> Iterator for IterFull<'a, S, V> {
+impl<'a, S: BitString + Clone, V> Iterator for IterFull<'a, S, V> {
 	type Item = (S, Option<&'a V>);
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -48,7 +48,7 @@ impl<'a, S: BitString+Clone, V> Iterator for IterFull<'a, S, V> {
 		}
 
 		// go up in tree from last visited node
-		while Up == self.stack[self.stack.len()-1].0 {
+		while Up == self.stack[self.stack.len() - 1].0 {
 			if 0 == self.depth {
 				// all done
 				debug_assert_eq!(1, self.stack.len());
@@ -60,7 +60,7 @@ impl<'a, S: BitString+Clone, V> Iterator for IterFull<'a, S, V> {
 			if self.stack.len() > 1 {
 				// next node up the tree must be an inner node, and
 				// covers the first bit of both branches
-				let up_len = self.stack[self.stack.len()-2].1.key().len();
+				let up_len = self.stack[self.stack.len() - 2].1.key().len();
 				if self.depth - 1 == up_len {
 					// done walking up this branch
 					self.stack.pop();
@@ -72,13 +72,13 @@ impl<'a, S: BitString+Clone, V> Iterator for IterFull<'a, S, V> {
 			}
 
 			// still walking up current branch
-			let key = self.stack[self.stack.len()-1].1.key();
+			let key = self.stack[self.stack.len() - 1].1.key();
 			self.depth -= 1;
 			if key.get(self.depth) {
 				// already walked that side when going Down
 			} else {
 				let mut key = key.clone();
-				key.clip(self.depth+1);
+				key.clip(self.depth + 1);
 				key.flip(self.depth);
 				return Some((key, None));
 			}
@@ -127,7 +127,7 @@ impl<'a, S: BitString+Clone, V> Iterator for IterFull<'a, S, V> {
 						Node::Leaf(ref leaf) => {
 							self.stack[top].0 = Up;
 							return Some((leaf.key.clone(), Some(&leaf.value)));
-						}
+						},
 					}
 				},
 				Right => {

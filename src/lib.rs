@@ -23,18 +23,16 @@ where
 	T: Sized,
 	F: FnOnce(T) -> T,
 {
-	use std::mem;
-	use std::panic::*;
-	use std::process;
+	use std::{
+		mem,
+		panic::*,
+		process,
+	};
 
 	let with = AssertUnwindSafe(with);
 
-	let old = AssertUnwindSafe(
-		mem::replace(location, unsafe{mem::uninitialized()})
-	);
-	let new = catch_unwind(move || {
-		AssertUnwindSafe(with.0(old.0))
-	}).unwrap_or_else(move |_e| {
+	let old = AssertUnwindSafe(mem::replace(location, unsafe { mem::uninitialized() }));
+	let new = catch_unwind(move || AssertUnwindSafe(with.0(old.0))).unwrap_or_else(move |_e| {
 		// we're screwed, give up
 		process::abort();
 	});
@@ -55,29 +53,28 @@ where
 	F: FnOnce(T) -> T,
 	G: FnOnce() -> T,
 {
-	use std::mem;
-	use std::panic::*;
-	use std::process;
+	use std::{
+		mem,
+		panic::*,
+		process,
+	};
 
 	let with = AssertUnwindSafe(with);
 	let fallback = AssertUnwindSafe(fallback);
 
-	let old = AssertUnwindSafe(
-		mem::replace(location, unsafe{mem::uninitialized()})
-	);
-	let (new, panic_err) = catch_unwind(move || {
-		(AssertUnwindSafe(with.0(old.0)), None)
-	}).unwrap_or_else(move |e| {
-		// remember panic so we can resume unwinding it
-		// now give `fallback` a second chance to create a value
-		let e = AssertUnwindSafe(e);
-		catch_unwind(move || {
-			(AssertUnwindSafe(fallback.0()), Some(e.0))
-		}).unwrap_or_else(move |_e| {
-			// if fallback panics too, give up
-			process::abort();
-		})
-	});
+	let old = AssertUnwindSafe(mem::replace(location, unsafe { mem::uninitialized() }));
+	let (new, panic_err) = catch_unwind(move || (AssertUnwindSafe(with.0(old.0)), None))
+		.unwrap_or_else(move |e| {
+			// remember panic so we can resume unwinding it
+			// now give `fallback` a second chance to create a value
+			let e = AssertUnwindSafe(e);
+			catch_unwind(move || (AssertUnwindSafe(fallback.0()), Some(e.0))).unwrap_or_else(
+				move |_e| {
+					// if fallback panics too, give up
+					process::abort();
+				},
+			)
+		});
 	let tmp = mem::replace(location, new.0);
 	mem::forget(tmp);
 	if let Some(panic_err) = panic_err {

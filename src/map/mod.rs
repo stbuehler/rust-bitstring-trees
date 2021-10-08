@@ -1,11 +1,15 @@
 //! map of bit strings prefixes to values
 use bitstring::BitString;
-use std::boxed::Box;
-use std::option::Option;
-use std::fmt;
+use std::{
+	boxed::Box,
+	fmt,
+	option::Option,
+};
 
-pub use self::iter::*;
-pub use self::iter_full::*;
+pub use self::{
+	iter::*,
+	iter_full::*,
+};
 
 mod iter;
 mod iter_full;
@@ -24,7 +28,7 @@ pub struct RadixMap<S: BitString, V> {
 	node: Option<Node<S, V>>,
 }
 
-impl<S: BitString+fmt::Debug, V: fmt::Debug> fmt::Debug for RadixMap<S, V> {
+impl<S: BitString + fmt::Debug, V: fmt::Debug> fmt::Debug for RadixMap<S, V> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self.node {
 			None => {
@@ -39,9 +43,7 @@ impl<S: BitString+fmt::Debug, V: fmt::Debug> fmt::Debug for RadixMap<S, V> {
 
 impl<S: BitString, V> Default for RadixMap<S, V> {
 	fn default() -> Self {
-		RadixMap{
-			node: None,
-		}
+		RadixMap { node: None }
 	}
 }
 
@@ -56,20 +58,20 @@ pub enum Node<S: BitString, V> {
 }
 
 /// Leaf nodes represent prefixes part of the set
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Leaf<S: BitString, V> {
 	key: S,
 	value: V,
 }
 
 /// Inner node with two direct children.
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct InnerNode<S: BitString, V> {
 	key: S,
 	children: Box<Children<S, V>>,
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 struct Children<S: BitString, V> {
 	left: Node<S, V>,
 	right: Node<S, V>,
@@ -109,44 +111,49 @@ impl<S: BitString, V> InnerNode<S, V> {
 	}
 }
 
-impl<S: BitString+fmt::Debug, V: fmt::Debug> fmt::Debug for Node<S, V> {
+impl<S: BitString + fmt::Debug, V: fmt::Debug> fmt::Debug for Node<S, V> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
 			Node::Leaf(ref leaf) => write!(f, "Leaf {{ key: {:?} }}", leaf.key),
-			Node::InnerNode(ref inner) => write!(f, "InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}", inner.key, inner.left(), inner.right()),
+			Node::InnerNode(ref inner) => write!(
+				f,
+				"InnerNode {{ key: {:?}, left: {:?}, right: {:?} }}",
+				inner.key,
+				inner.left(),
+				inner.right()
+			),
 		}
 	}
 }
 
-impl<S: BitString+Clone, V> Node<S, V> {
+impl<S: BitString + Clone, V> Node<S, V> {
 	fn new_leaf(key: S, value: V) -> Self {
-		Node::Leaf(Leaf{
-			key: key,
-			value: value,
-		})
+		Node::Leaf(Leaf { key, value })
 	}
 
-	fn new_children_unknown_order(shared_prefix_len: usize, a: Node<S, V>, b: Node<S, V>) -> Box<Children<S, V>> {
+	fn new_children_unknown_order(
+		shared_prefix_len: usize,
+		a: Node<S, V>,
+		b: Node<S, V>,
+	) -> Box<Children<S, V>> {
 		let a_right = a.key().get(shared_prefix_len);
 		assert_eq!(!a_right, b.key().get(shared_prefix_len));
 		if a_right {
-			Box::new(Children{
-				left: b,
-				right: a,
-			})
+			Box::new(Children { left: b, right: a })
 		} else {
-			Box::new(Children{
-				left: a,
-				right: b,
-			})
+			Box::new(Children { left: a, right: b })
 		}
 	}
 
-	fn new_inner_unknown_order(shared_prefix_len: usize, a: Node<S, V>, b: Node<S, V>) -> Node<S, V> {
+	fn new_inner_unknown_order(
+		shared_prefix_len: usize,
+		a: Node<S, V>,
+		b: Node<S, V>,
+	) -> Node<S, V> {
 		let mut key = a.key().clone();
 		key.clip(shared_prefix_len);
-		Node::InnerNode(InnerNode{
-			key: key,
+		Node::InnerNode(InnerNode {
+			key,
 			children: Self::new_children_unknown_order(shared_prefix_len, a, b),
 		})
 	}
@@ -188,7 +195,9 @@ impl<S: BitString+Clone, V> Node<S, V> {
 	}
 
 	fn insert_uncompressed(&mut self, key: S, value: V)
-	where V: Clone {
+	where
+		V: Clone,
+	{
 		let (self_key_len, shared_prefix_len) = {
 			let key_ref = self.key();
 			(key_ref.len(), key_ref.shared_prefix_len(&key))
@@ -202,11 +211,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 			debug_assert!(shared_prefix_len < key.len());
 			// need to split path to current node; requires new parent
 			self.replace(|this| {
-				Self::new_inner_unknown_order(
-					shared_prefix_len,
-					this,
-					Self::new_leaf(key, value)
-				)
+				Self::new_inner_unknown_order(shared_prefix_len, this, Self::new_leaf(key, value))
 			});
 		} else {
 			debug_assert!(shared_prefix_len == self_key_len);
@@ -219,7 +224,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 					let mut new_node = Self::new_leaf(key.clone(), value);
 					for l in (shared_prefix_len..key.len()).rev() {
 						let mut other_key = key.clone();
-						other_key.clip(l+1);
+						other_key.clip(l + 1);
 						other_key.flip(l);
 						new_node = Self::new_inner_unknown_order(
 							l,
@@ -228,16 +233,18 @@ impl<S: BitString+Clone, V> Node<S, V> {
 						);
 					}
 					*self = new_node;
-				}
+				},
 				Node::InnerNode(ref mut inner) => {
 					inner.pick_side(&key).insert_uncompressed(key, value);
-				}
+				},
 			}
 		}
 	}
 
 	fn insert(&mut self, key: S, value: V)
-	where V: Clone+Eq {
+	where
+		V: Clone + Eq,
+	{
 		let (self_key_len, shared_prefix_len) = {
 			let key_ref = self.key();
 			(key_ref.len(), key_ref.shared_prefix_len(&key))
@@ -247,12 +254,10 @@ impl<S: BitString+Clone, V> Node<S, V> {
 			// either key == self.key, or key is a prefix of self.key
 			// => replace subtree
 			self.convert_leaf(shared_prefix_len, value);
-			// no need to compress
+		// no need to compress
 		} else if shared_prefix_len < self_key_len {
 			debug_assert!(shared_prefix_len < key.len());
-			if shared_prefix_len + 1 == self_key_len
-				&& shared_prefix_len + 1 == key.len()
-			{
+			if shared_prefix_len + 1 == self_key_len && shared_prefix_len + 1 == key.len() {
 				if let Node::Leaf(ref mut this) = *self {
 					if this.value == value {
 						// we'd split this, and compress it below.
@@ -265,14 +270,10 @@ impl<S: BitString+Clone, V> Node<S, V> {
 
 			// need to split path to current node; requires new parent
 			self.replace(|this| {
-				Self::new_inner_unknown_order(
-					shared_prefix_len,
-					this,
-					Self::new_leaf(key, value)
-				)
+				Self::new_inner_unknown_order(shared_prefix_len, this, Self::new_leaf(key, value))
 			});
-			// no need to compress - shortcut check above would
-			// have found it
+		// no need to compress - shortcut check above would
+		// have found it
 		} else {
 			debug_assert!(shared_prefix_len == self_key_len);
 			debug_assert!(shared_prefix_len < key.len());
@@ -289,7 +290,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 						let mut new_node = Self::new_leaf(key.clone(), value);
 						for l in (shared_prefix_len..key.len()).rev() {
 							let mut other_key = key.clone();
-							other_key.clip(l+1);
+							other_key.clip(l + 1);
 							other_key.flip(l);
 							new_node = Self::new_inner_unknown_order(
 								l,
@@ -314,7 +315,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 
 	fn compress(&mut self)
 	where
-		V: Eq
+		V: Eq,
 	{
 		let self_key_len = self.key().len();
 
@@ -340,7 +341,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 			self.replace(|this| match this {
 				// move value from left
 				Node::InnerNode(inner) => match inner.children.left {
-					Node::Leaf(leaf) => Node::Leaf(Leaf{
+					Node::Leaf(leaf) => Node::Leaf(Leaf {
 						key: inner.key,
 						value: leaf.value,
 					}),
@@ -352,7 +353,7 @@ impl<S: BitString+Clone, V> Node<S, V> {
 	}
 }
 
-impl<S: BitString+Clone, V> RadixMap<S, V> {
+impl<S: BitString + Clone, V> RadixMap<S, V> {
 	/// New (empty) map.
 	pub fn new() -> Self {
 		Default::default()
@@ -363,7 +364,8 @@ impl<S: BitString+Clone, V> RadixMap<S, V> {
 	/// As values can't be compared for equality it cannot merge
 	/// neighbour prefixes that map to the same value.
 	pub fn insert_uncompressed(&mut self, key: S, value: V)
-	where V: Clone
+	where
+		V: Clone,
 	{
 		match self.node {
 			None => {
@@ -378,7 +380,8 @@ impl<S: BitString+Clone, V> RadixMap<S, V> {
 	/// Add a new prefix => value mapping.  (Partially) overwrites old
 	/// mappings.
 	pub fn insert(&mut self, key: S, value: V)
-	where V: Clone+Eq
+	where
+		V: Clone + Eq,
 	{
 		match self.node {
 			None => {
