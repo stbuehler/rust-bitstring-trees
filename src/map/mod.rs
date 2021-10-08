@@ -397,10 +397,7 @@ impl<S: BitString + Clone, V> RadixMap<S, V> {
 	///
 	/// An empty map doesn't have any nodes (i.e. `None`).
 	pub fn root(&self) -> Option<&Node<S, V>> {
-		match self.node {
-			None => None,
-			Some(ref node) => Some(&node),
-		}
+		self.node.as_ref()
 	}
 
 	/// Iterate over all values in the map

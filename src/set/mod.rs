@@ -43,7 +43,7 @@ impl<S: BitString + fmt::Debug> fmt::Debug for RadixSet<S> {
 
 impl<S: BitString> Default for RadixSet<S> {
 	fn default() -> RadixSet<S> {
-		return RadixSet::<S> { node: None };
+		RadixSet::<S> { node: None }
 	}
 }
 
@@ -256,10 +256,7 @@ impl<S: BitString + Clone> RadixSet<S> {
 	///
 	/// An empty set doesn't have any nodes (i.e. `None`).
 	pub fn root(&self) -> Option<&Node<S>> {
-		match self.node {
-			None => None,
-			Some(ref node) => Some(&node),
-		}
+		self.node.as_ref()
 	}
 
 	/// Iterate over all prefixes in the set
