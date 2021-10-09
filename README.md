@@ -1,4 +1,4 @@
-[![Travis Build Status](https://travis-ci.org/stbuehler/rust-bitstring-trees.svg?branch=master)](https://travis-ci.org/stbuehler/rust-bitstring-trees)
+[![Rust CI](https://github.com/stbuehler/rust-bitstring-trees/actions/workflows/rust.yml/badge.svg?branch=master&event=push)](https://github.com/stbuehler/rust-bitstring-trees/actions/workflows/rust.yml)
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/d3q4831l760sepj6?svg=true)](https://ci.appveyor.com/project/stbuehler/rust-bitstring-trees)
 [![crates.io](https://img.shields.io/crates/v/bitstring-trees.svg)](https://crates.io/crates/bitstring-trees)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)

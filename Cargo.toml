@@ -14,7 +14,6 @@ license = "MIT"
 exclude = ["CHECKLIST.md"]
 
 [badges]
-travis-ci = { repository = "stbuehler/rust-bitstring-trees" }
 appveyor = { repository = "stbuehler/rust-bitstring-trees" }
 
 [dependencies]
