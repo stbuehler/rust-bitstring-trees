@@ -25,14 +25,12 @@ where
 		process,
 	};
 
-	let with = AssertUnwindSafe(with);
-
-	let old = AssertUnwindSafe(unsafe { std::ptr::read(location) });
-	let new = catch_unwind(move || AssertUnwindSafe(with.0(old.0))).unwrap_or_else(move |_e| {
+	let old = unsafe { std::ptr::read(location) };
+	let new = catch_unwind(AssertUnwindSafe(move || with(old))).unwrap_or_else(move |_e| {
 		// we're screwed, give up
 		process::abort();
 	});
-	unsafe { std::ptr::write(location, new.0) }
+	unsafe { std::ptr::write(location, new) }
 }
 
 // similar to replace_at, but allow for a second chance through
@@ -53,23 +51,19 @@ where
 		process,
 	};
 
-	let with = AssertUnwindSafe(with);
-	let fallback = AssertUnwindSafe(fallback);
-
-	let old = AssertUnwindSafe(unsafe { std::ptr::read(location) });
-	let (new, panic_err) = catch_unwind(move || (AssertUnwindSafe(with.0(old.0)), None))
+	let old = unsafe { std::ptr::read(location) };
+	let (new, panic_err) = catch_unwind(AssertUnwindSafe(move || (with(old), None)))
 		.unwrap_or_else(move |e| {
 			// remember panic so we can resume unwinding it
 			// now give `fallback` a second chance to create a value
-			let e = AssertUnwindSafe(e);
-			catch_unwind(move || (AssertUnwindSafe(fallback.0()), Some(e.0))).unwrap_or_else(
+			catch_unwind(AssertUnwindSafe(move || (fallback(), Some(e)))).unwrap_or_else(
 				move |_e| {
 					// if fallback panics too, give up
 					process::abort();
 				},
 			)
 		});
-	unsafe { std::ptr::write(location, new.0) }
+	unsafe { std::ptr::write(location, new) }
 	if let Some(panic_err) = panic_err {
 		resume_unwind(panic_err);
 	}

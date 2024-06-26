@@ -2,7 +2,8 @@
 name = "bitstring-trees"
 # also bump version in html_root_url in src/lib.rs
 version = "0.1.1"
-authors = ["Stefan Bühler <stbuehler@web.de>"]
+authors = ["Stefan Bühler <source@stbuehler.de>"]
+edition = "2021"
 description = "Trees based on bitstrings"
 documentation = "https://docs.rs/bitstring-trees"
 homepage = "https://github.com/stbuehler/rust-bitstring-trees"
