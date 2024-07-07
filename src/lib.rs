@@ -4,6 +4,7 @@
 
 extern crate bitstring;
 
+pub mod iter;
 pub mod map;
 pub mod set;
 
