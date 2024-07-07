@@ -207,7 +207,7 @@ where
 
 /// Generate smallest set of prefixes covering values between other prefixes
 ///
-/// See [`iter_uncovered_prefixes`].
+/// See [`iter_between`].
 #[derive(Clone, Debug)]
 pub struct IterBetween<K> {
 	range: IterInclusive<K>,

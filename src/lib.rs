@@ -4,6 +4,9 @@
 
 extern crate bitstring;
 
+pub mod full_map;
 pub mod iter;
+pub mod map;
+pub mod set;
 pub mod tree;
 pub mod walk_mut;

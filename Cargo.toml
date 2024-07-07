@@ -19,3 +19,6 @@ appveyor = { repository = "stbuehler/rust-bitstring-trees" }
 
 [dependencies]
 bitstring = "0.1"
+
+[dev-dependencies]
+cidr = { version = "0.2.3", features = ["bitstring"] }
