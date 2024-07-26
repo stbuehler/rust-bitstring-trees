@@ -4,9 +4,9 @@
 //!
 //! Look for other containers in this crate that offer specific use cases.
 
+use alloc::boxed::Box;
 use bitstring::BitString;
-use goto::LookupStepWith;
-use std::{
+use core::{
 	fmt,
 	mem::{
 		replace,
@@ -15,6 +15,7 @@ use std::{
 	},
 	ptr::NonNull,
 };
+use goto::LookupStepWith;
 
 use crate::walk_mut::NodeOrTree;
 

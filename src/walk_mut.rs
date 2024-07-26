@@ -1,9 +1,11 @@
 //! Walk tree structures without call stack
 
-use std::{
+use core::{
 	marker::PhantomData,
 	ptr::NonNull,
 };
+
+use alloc::vec::Vec;
 
 /// Allows different node and tree types in [`WalkMut`].
 pub enum NodeOrTree<T, N> {

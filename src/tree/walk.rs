@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use bitstring::BitString;
 
 use crate::walk_mut::NodeOrTree;

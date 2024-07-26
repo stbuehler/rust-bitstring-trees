@@ -324,8 +324,9 @@ where
 #[cfg(test)]
 mod tests {
 	use super::iter_inclusive;
+	use alloc::vec::Vec;
 	use bitstring::BitLengthString;
-	use std::net::{
+	use core::net::{
 		Ipv4Addr,
 		Ipv6Addr,
 	};
@@ -345,7 +346,7 @@ mod tests {
 	fn testv4_1() {
 		assert_eq!(
 			iter_inclusive(c4("192.168.0.6", 32), c4("192.168.0.6", 32)).collect::<Vec<_>>(),
-			vec![c4("192.168.0.6", 32),]
+			alloc::vec![c4("192.168.0.6", 32),]
 		);
 	}
 
@@ -353,7 +354,7 @@ mod tests {
 	fn testv6_1() {
 		assert_eq!(
 			iter_inclusive(c6("::f0:4", 128), c6("::f0:10", 128)).collect::<Vec<_>>(),
-			vec![c6("::f0:4", 126), c6("::f0:8", 125), c6("::f0:10", 128),]
+			alloc::vec![c6("::f0:4", 126), c6("::f0:8", 125), c6("::f0:10", 128),]
 		);
 	}
 }
