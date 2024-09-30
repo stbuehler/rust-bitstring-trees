@@ -6,3 +6,7 @@
 This library provides sets and maps with trees based on bitstrings.
 
 The documentation for `master` is located at [https://stbuehler.github.io/rustdocs/bitstring-trees/bitstring_trees/](https://stbuehler.github.io/rustdocs/bitstring-trees/bitstring_trees/index.html); released versions are documented at [https://docs.rs/bitstring-trees](https://docs.rs/bitstring-trees).
+
+## Related work
+
+* quelques-bits popcount patricia trie: <https://dotat.at/prog/qp/README.html>
