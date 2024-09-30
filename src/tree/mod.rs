@@ -74,7 +74,7 @@ mod walk_dir;
 /// Define Tree behavior
 pub trait TreeProperties {
 	/// Bitstring key
-	type Key: BitString + Clone + Eq;
+	type Key: BitString + Clone;
 	/// Value attached to all inner and leaf nodes
 	type Value: Default;
 	/// Value attached to leaf nodes only

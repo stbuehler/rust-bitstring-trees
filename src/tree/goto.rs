@@ -102,7 +102,7 @@ pub(in crate::tree) enum LookupStepWith<N> {
 // i.e. shared_prefix(a, b) == a ?
 pub(in crate::tree) fn is_prefix<K>(a: &K, a_len: usize, b: &K, b_len: usize) -> bool
 where
-	K: bitstring::BitString + Clone + Eq,
+	K: bitstring::BitString + Clone,
 {
 	if a_len > b_len {
 		return false;

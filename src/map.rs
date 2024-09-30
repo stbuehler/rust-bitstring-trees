@@ -15,12 +15,12 @@ use crate::tree::{
 
 struct TpMap<K, V>(PhantomData<*const K>, PhantomData<*const V>)
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq;
 
 impl<K, V> TreeProperties for TpMap<K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	type Key = K;
@@ -42,7 +42,7 @@ where
 #[derive(Clone)]
 pub struct Map<K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	tree: Tree<TpMap<K, V>>,
@@ -50,7 +50,7 @@ where
 
 impl<K, V> Default for Map<K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	fn default() -> Self {
@@ -60,7 +60,7 @@ where
 
 impl<K, V> core::fmt::Debug for Map<K, V>
 where
-	K: BitString + Clone + Eq + core::fmt::Debug,
+	K: BitString + Clone + core::fmt::Debug,
 	V: Default + Clone + Eq + core::fmt::Debug,
 {
 	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -70,7 +70,7 @@ where
 
 impl<K, V> Map<K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	/// New (empty) map.
@@ -159,7 +159,7 @@ where
 /// Iterate over all (aggregated) prefixes and their values
 pub struct IterMap<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	iter: crate::tree::IterLeaf<'s, TpMap<K, V>>,
@@ -167,7 +167,7 @@ where
 
 impl<'s, K, V> Iterator for IterMap<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	type Item = (&'s K, &'s V);
@@ -181,7 +181,7 @@ where
 /// Iterate over all (aggregated) prefixes and their mutable values
 pub struct IterMutMap<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	iter: crate::tree::IterMutOwnedLeaf<'s, TpMap<K, V>>,
@@ -189,7 +189,7 @@ where
 
 impl<'s, K, V> Iterator for IterMutMap<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	type Item = (&'s K, &'s mut V);
@@ -202,7 +202,7 @@ where
 /// Iterate over smallest list of bit strings that cover everything with a value or None if not mapped
 pub struct IterMapFull<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	iter: crate::tree::IterLeafFull<'s, TpMap<K, V>>,
@@ -210,7 +210,7 @@ where
 
 impl<'s, K, V> Iterator for IterMapFull<'s, K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 	V: Default + Clone + Eq,
 {
 	type Item = (K, Option<&'s V>);

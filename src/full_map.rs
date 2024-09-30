@@ -15,9 +15,9 @@ use crate::tree::{
 	WalkedDirection,
 };
 
-struct TpFullMap<K: BitString + Clone + Eq, V>(PhantomData<*const K>, PhantomData<*const V>);
+struct TpFullMap<K: BitString + Clone, V>(PhantomData<*const K>, PhantomData<*const V>);
 
-impl<K: BitString + Clone + Eq, V> TreeProperties for TpFullMap<K, V> {
+impl<K: BitString + Clone, V> TreeProperties for TpFullMap<K, V> {
 	type Key = K;
 	type LeafValue = ();
 	type LeafValueComparer = DefaultCompare;
@@ -41,11 +41,11 @@ impl<K: BitString + Clone + Eq, V> TreeProperties for TpFullMap<K, V> {
 /// This is implemented as a [`crate::tree::Tree`] where all nodes can have an optional value;
 /// branches where no node has a value are pruned.
 #[derive(Clone)]
-pub struct FullMap<K: BitString + Clone + Eq, V> {
+pub struct FullMap<K: BitString + Clone, V> {
 	tree: Tree<TpFullMap<K, V>>,
 }
 
-impl<K: BitString + Clone + Eq, V> Default for FullMap<K, V> {
+impl<K: BitString + Clone, V> Default for FullMap<K, V> {
 	fn default() -> Self {
 		Self::new()
 	}
@@ -53,7 +53,7 @@ impl<K: BitString + Clone + Eq, V> Default for FullMap<K, V> {
 
 impl<K, V> core::fmt::Debug for FullMap<K, V>
 where
-	K: BitString + Clone + Eq + core::fmt::Debug,
+	K: BitString + Clone + core::fmt::Debug,
 	V: core::fmt::Debug,
 {
 	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -63,7 +63,7 @@ where
 
 impl<K, V> FullMap<K, V>
 where
-	K: BitString + Clone + Eq,
+	K: BitString + Clone,
 {
 	/// New (empty) map.
 	pub const fn new() -> Self {
@@ -185,14 +185,14 @@ where
 /// This enum is constructed from the [`entry`] method on [`FullMap`].
 ///
 /// [`entry`]: FullMap::entry
-pub enum Entry<'s, K: BitString + Clone + Eq, V> {
+pub enum Entry<'s, K: BitString + Clone, V> {
 	/// A vacant entry.
 	Vacant(VacantEntry<'s, K, V>),
 	/// An occupied entry.
 	Occupied(OccupiedEntry<'s, K, V>),
 }
 
-impl<'s, K: BitString + Clone + Eq, V> Entry<'s, K, V> {
+impl<'s, K: BitString + Clone, V> Entry<'s, K, V> {
 	/// Ensures a value is in the entry by inserting the default if empty, and returns
 	/// a mutable reference to the value in the entry.
 	pub fn or_insert(self, default: V) -> &'s mut V {
@@ -302,12 +302,12 @@ impl<'s, K: BitString + Clone + Eq, V> Entry<'s, K, V> {
 }
 
 /// A view into a vacant entry in a [`FullMap`]. It is part of the [`Entry`] enum.
-pub struct VacantEntry<'s, K: BitString + Clone + Eq + 's, V: 's> {
+pub struct VacantEntry<'s, K: BitString + Clone + 's, V: 's> {
 	walk: crate::tree::WalkMutOwned<'s, TpFullMap<K, V>, WalkedDirection>,
 	key: K,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> VacantEntry<'s, K, V> {
+impl<'s, K: BitString + Clone, V> VacantEntry<'s, K, V> {
 	/// Gets a reference to the key that would be used when inserting a value
 	/// through the VacantEntry.
 	pub fn key(&self) -> &K {
@@ -334,11 +334,11 @@ impl<'s, K: BitString + Clone + Eq, V> VacantEntry<'s, K, V> {
 }
 
 /// A view into an occupied entry in a [`FullMap`]. It is part of the [`Entry`] enum.
-pub struct OccupiedEntry<'s, K: BitString + Clone + Eq + 's, V: 's> {
+pub struct OccupiedEntry<'s, K: BitString + Clone + 's, V: 's> {
 	walk: crate::tree::WalkMutOwned<'s, TpFullMap<K, V>, WalkedDirection>,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> OccupiedEntry<'s, K, V> {
+impl<'s, K: BitString + Clone, V> OccupiedEntry<'s, K, V> {
 	fn node(&self) -> &Node<TpFullMap<K, V>> {
 		self.walk
 			.current()
@@ -416,11 +416,11 @@ impl<'s, K: BitString + Clone + Eq, V> OccupiedEntry<'s, K, V> {
 }
 
 /// Iterate over all prefixes and their values on the path to a key
-pub struct IterPath<'s, K: BitString + Clone + Eq, V> {
+pub struct IterPath<'s, K: BitString + Clone, V> {
 	iter: crate::tree::IterPath<'s, TpFullMap<K, V>>,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> Iterator for IterPath<'s, K, V> {
+impl<'s, K: BitString + Clone, V> Iterator for IterPath<'s, K, V> {
 	type Item = (&'s K, &'s V);
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -435,11 +435,11 @@ impl<'s, K: BitString + Clone + Eq, V> Iterator for IterPath<'s, K, V> {
 }
 
 /// Iterate over all prefixes and their values on the path to a key
-pub struct IterPathMut<'s, K: BitString + Clone + Eq, V> {
+pub struct IterPathMut<'s, K: BitString + Clone, V> {
 	iter: crate::tree::IterMutPath<'s, TpFullMap<K, V>>,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> Iterator for IterPathMut<'s, K, V> {
+impl<'s, K: BitString + Clone, V> Iterator for IterPathMut<'s, K, V> {
 	type Item = (&'s K, &'s mut V);
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -454,11 +454,11 @@ impl<'s, K: BitString + Clone + Eq, V> Iterator for IterPathMut<'s, K, V> {
 }
 
 /// Iterate over all prefixes and their values
-pub struct IterMap<'s, K: BitString + Clone + Eq, V> {
+pub struct IterMap<'s, K: BitString + Clone, V> {
 	iter: crate::tree::IterInOrder<'s, TpFullMap<K, V>>,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> Iterator for IterMap<'s, K, V> {
+impl<'s, K: BitString + Clone, V> Iterator for IterMap<'s, K, V> {
 	type Item = (&'s K, &'s V);
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -473,11 +473,11 @@ impl<'s, K: BitString + Clone + Eq, V> Iterator for IterMap<'s, K, V> {
 }
 
 /// Iterate over all (aggregated) prefixes and their mutable values
-pub struct IterMutMap<'s, K: BitString + Clone + Eq, V> {
+pub struct IterMutMap<'s, K: BitString + Clone, V> {
 	iter: crate::tree::IterMutOwnedInOrder<'s, TpFullMap<K, V>>,
 }
 
-impl<'s, K: BitString + Clone + Eq, V> Iterator for IterMutMap<'s, K, V> {
+impl<'s, K: BitString + Clone, V> Iterator for IterMutMap<'s, K, V> {
 	type Item = (&'s K, &'s mut V);
 
 	fn next(&mut self) -> Option<Self::Item> {

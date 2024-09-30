@@ -16,11 +16,11 @@ mod hidden {
 	use core::marker::PhantomData;
 
 	/// make it public so we can use it in returned types, but don't make it directly accessible
-	pub struct TpSet<K: BitString + Clone + Eq>(PhantomData<*const K>);
+	pub struct TpSet<K: BitString + Clone>(PhantomData<*const K>);
 }
 use hidden::TpSet;
 
-impl<K: BitString + Clone + Eq> TreeProperties for TpSet<K> {
+impl<K: BitString + Clone> TreeProperties for TpSet<K> {
 	type Key = K;
 	type LeafValue = ();
 	type LeafValueComparer = DefaultCompare;
@@ -39,23 +39,23 @@ impl<K: BitString + Clone + Eq> TreeProperties for TpSet<K> {
 /// values at all, buf leaf nodes represent set membership of the associated
 /// key.
 #[derive(Clone)]
-pub struct Set<K: BitString + Clone + Eq> {
+pub struct Set<K: BitString + Clone> {
 	tree: Tree<TpSet<K>>,
 }
 
-impl<K: BitString + Clone + Eq> Default for Set<K> {
+impl<K: BitString + Clone> Default for Set<K> {
 	fn default() -> Self {
 		Self::new()
 	}
 }
 
-impl<K: BitString + Clone + Eq + core::fmt::Debug> core::fmt::Debug for Set<K> {
+impl<K: BitString + Clone + core::fmt::Debug> core::fmt::Debug for Set<K> {
 	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
 		f.debug_set().entries(self.iter()).finish()
 	}
 }
 
-impl<K: BitString + Clone + Eq> Set<K> {
+impl<K: BitString + Clone> Set<K> {
 	/// New (empty) set.
 	pub const fn new() -> Self {
 		Self { tree: Tree::new() }
@@ -121,11 +121,11 @@ impl<K: BitString + Clone + Eq> Set<K> {
 }
 
 /// Iterate over all prefixes contained in a set
-pub struct IterSet<'s, K: BitString + Clone + Eq> {
+pub struct IterSet<'s, K: BitString + Clone> {
 	iter: super::tree::IterLeaf<'s, TpSet<K>>,
 }
 
-impl<'s, K: BitString + Clone + Eq> Iterator for IterSet<'s, K> {
+impl<'s, K: BitString + Clone> Iterator for IterSet<'s, K> {
 	type Item = &'s K;
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -134,11 +134,11 @@ impl<'s, K: BitString + Clone + Eq> Iterator for IterSet<'s, K> {
 }
 
 /// Iterate over smallest list of bit strings that cover everything with information whether they are part of the set or not
-pub struct IterSetFull<'s, K: BitString + Clone + Eq> {
+pub struct IterSetFull<'s, K: BitString + Clone> {
 	iter: super::tree::IterLeafFull<'s, TpSet<K>>,
 }
 
-impl<'s, K: BitString + Clone + Eq> Iterator for IterSetFull<'s, K> {
+impl<'s, K: BitString + Clone> Iterator for IterSetFull<'s, K> {
 	type Item = (K, bool);
 
 	fn next(&mut self) -> Option<Self::Item> {
