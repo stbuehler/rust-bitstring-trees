@@ -128,7 +128,7 @@ impl<'r, TP: TreeProperties> Iterator for IterLeafFull<'r, TP> {
 					let key = node.get_key().clone();
 					let leaf_value = node.get_leaf_value().expect("leaf node");
 					// return uncovered prefixes before
-					let start = core::mem::replace(&mut self.previous_key, Some(key.clone()));
+					let start = self.previous_key.replace(key.clone());
 					self.uncovered = iter_between(start, Some(key.clone()));
 					self.next = Some((key, leaf_value));
 				},

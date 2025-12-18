@@ -580,7 +580,7 @@ where
 				}
 			},
 		}
-		return self.current_mut().node();
+		self.current_mut().node()
 	}
 
 	/// Convert into iterator traversing depth-first in-order
@@ -614,7 +614,7 @@ where
 				}
 			},
 		}
-		return self.current_mut().node();
+		self.current_mut().node()
 	}
 
 	/// Convert into iterator traversing depth-first post-order
@@ -642,7 +642,7 @@ where
 				}
 			},
 		}
-		return self.current_mut().node();
+		self.current_mut().node()
 	}
 
 	/// Convert into iterator over all leafs
@@ -678,7 +678,7 @@ where
 				}
 			},
 		}
-		return self.current_mut().node();
+		self.current_mut().node()
 	}
 }
 

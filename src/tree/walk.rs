@@ -206,7 +206,7 @@ impl<'r, TP: TreeProperties> Walk<'r, TP, WalkedDirection> {
 				}
 			},
 		}
-		return self.current().node();
+		self.current().node()
 	}
 
 	/// Tree traversal: depth-first in-order
@@ -235,7 +235,7 @@ impl<'r, TP: TreeProperties> Walk<'r, TP, WalkedDirection> {
 				}
 			},
 		}
-		return self.current().node();
+		self.current().node()
 	}
 
 	/// Tree traversal: depth-first in-order leaf nodes only
@@ -261,7 +261,7 @@ impl<'r, TP: TreeProperties> Walk<'r, TP, WalkedDirection> {
 				}
 			},
 		}
-		return self.current().node();
+		self.current().node()
 	}
 
 	/// Tree traversal: depth-first post-order
@@ -284,6 +284,6 @@ impl<'r, TP: TreeProperties> Walk<'r, TP, WalkedDirection> {
 				}
 			},
 		}
-		return self.current().node();
+		self.current().node()
 	}
 }

@@ -882,7 +882,7 @@ impl<TP: TreeProperties> Tree<TP> {
 			};
 		}
 		// safety: steps derived from result are not borrowed anymore
-		return Some(unsafe { result?.as_mut() });
+		Some(unsafe { result?.as_mut() })
 	}
 
 	/// Get a reference to the node with the longest prefix of the target key
